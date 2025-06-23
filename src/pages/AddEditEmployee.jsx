@@ -2,6 +2,7 @@ import  { useEffect, useState } from 'react';
 import { Form, Input, Button, message } from 'antd';
 import { createEmployee, getEmployeeById, updateEmployee } from '../api/employeeApi';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useGlobalMessage } from '../components/MessageProvider';
 
 export const AddEditEmployee = () => {
   const [form] = Form.useForm();
@@ -10,6 +11,7 @@ export const AddEditEmployee = () => {
   const isEditMode = !!id;
   const [isEditing, setIsEditing] = useState(!isEditMode); 
   const [initialValues, setInitialValues] = useState({}); 
+  const messageApi = useGlobalMessage();
 
   useEffect(() => {
     if (isEditMode) {
@@ -25,7 +27,6 @@ export const AddEditEmployee = () => {
   }, [id, form, isEditMode]);
 
   const handleValidate = (values) => {
-   console.log('Form submitted:', values);
 
   if (isEditMode && !isEditing) {
     return;
@@ -33,17 +34,17 @@ export const AddEditEmployee = () => {
     if (isEditMode) {
       updateEmployee(id, values)
         .then(() => {
-          message.success('Employee updated!');
+          messageApi.success('Employee updated!');
           navigate('/');
         })
-        .catch(() => message.error('Update failed'));
+        .catch(() => messageApi.error('Update failed'));
     } else {
       createEmployee(values)
         .then(() => {
-          message.success('Employee created!');
+          messageApi.success('Employee created!');
           navigate('/');
         })
-        .catch(() => message.error('Creation failed'));
+        .catch(() => messageApi.error('Creation failed'));
     }
   };
 
@@ -56,15 +57,7 @@ export const AddEditEmployee = () => {
     <div className="max-w-xl mx-auto mt-10 bg-white shadow p-6 rounded">
       <h2 className="text-xl font-bold mb-4">{isEditMode ? 'Edit Employee' : 'Add Employee'}</h2>
 
-      <Form form={form} layout="vertical" onFinish={handleValidate}   onKeyDown={(e) => {
-    if (
-      e.key === 'Enter' &&
-      isEditMode &&
-      !isEditing
-    ) {
-      e.preventDefault();
-    }
-  }}  >
+      <Form form={form} layout="vertical" onFinish={handleValidate}  >
         <Form.Item
           name="firstName"
           label="First Name"
@@ -120,7 +113,7 @@ export const AddEditEmployee = () => {
 
       </Form>
        {isEditMode && !isEditing && <div className='flex justify-end mt-[-50px]'>
-<Button type="default" onClick={() => setIsEditing(true)} className='flex justify-end'>
+    <Button type="default" onClick={() => setIsEditing(true)} className='flex justify-end'>
       Edit
     </Button>
        </div>

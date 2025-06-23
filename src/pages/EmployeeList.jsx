@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Card, Button, Row, Col, Modal, Input,message } from 'antd';
+import { Card, Button, Row, Col, Modal, Input } from 'antd';
 import { getAllEmployees, deleteEmployee,searchEmployees  } from '../api/employeeApi';
 import { useNavigate } from 'react-router-dom';
+import { useGlobalMessage } from '../components/MessageProvider';
+import { generateOtp } from '../helpers/services.helper';
 
 export const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
@@ -9,13 +11,16 @@ export const EmployeeList = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const navigate = useNavigate();
-const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const messageApi = useGlobalMessage();
+  const [otpCode, setOtpCode] = useState(generateOtp(6));
+
   const fetchEmployees = async () => {
     try {
       const res = await getAllEmployees();
       setEmployees(res.data);
     } catch {
-      message.error('Failed to fetch all employees');
+      messageApi.error('Failed to fetch all employees');
     }
   };
 
@@ -43,30 +48,29 @@ const [searchQuery, setSearchQuery] = useState('');
       const res = await searchEmployees(value);
       setEmployees(res.data);
     } catch {
-      message.error('Search failed');
+      messageApi.error('Search failed');
     }
   };
 
-  const handleConfirmDelete = async () => {
-    const correctPin = '123456'; 
-    if (pinInput === correctPin) {
+  const handleConfirmDelete = async () => { 
+    if (pinInput === otpCode) {
       try {
         await deleteEmployee(selectedEmployeeId);
-        message.success('Employee deleted');
+        messageApi.success('Employee deleted');
         setIsModalVisible(false);
         setPinInput('');
         fetchEmployees();
       } catch {
-        message.error('Failed to delete employee');
+        messageApi.error('Failed to delete employee');
       }
     } else {
-      message.error('Incorrect PIN');
+      messageApi.error('Incorrect PIN');
     }
   };
 
   return (
     <>
-     <div style={{ marginBottom: 20 }}>
+     <div className='m-10 flex justify-center'>
         <Input.Search
           placeholder="Search by name, email, or phone"
           enterButton
@@ -76,7 +80,7 @@ const [searchQuery, setSearchQuery] = useState('');
           onSearch={handleSearch}
         />
       </div>
-
+      <div className='px-5'>
       <Row gutter={[16, 16]}>
         {employees.map((employee) => (
           <Col xs={24} sm={12} md={8} lg={6} key={employee.id}>
@@ -98,13 +102,14 @@ const [searchQuery, setSearchQuery] = useState('');
           </Col>
         ))}
       </Row>
-
+</div>
       <Modal
-        title="Enter 6-digit PIN to confirm deletion"
+        title={<span>Enter this OTP <span className='text-red-600'>{otpCode}</span> to delete this employee</span>}
         visible={isModalVisible}
         onCancel={() => {
           setIsModalVisible(false);
           setPinInput('');
+          setOtpCode(generateOtp(6))
         }}
         onOk={handleConfirmDelete}
         okText="Delete"
@@ -114,9 +119,10 @@ const [searchQuery, setSearchQuery] = useState('');
           maxLength={6}
           value={pinInput}
           onChange={(e) => setPinInput(e.target.value)}
-          placeholder="Enter 6-digit PIN"
+          placeholder="Enter PIN"
         />
       </Modal>
+       
     </>
   );
 };
