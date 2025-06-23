@@ -1,12 +1,16 @@
 import './App.css';
-import { Button } from 'antd';
-
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import {AddEditEmployee} from './pages/AddEditEmployee';
+import {EmployeeList} from './pages/EmployeeList'
 function App() {
   return (
-      <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Employee Manager</h1>
-      <Button type="primary">Ant Design Button</Button>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<EmployeeList/>} />
+        <Route path="/add" element={<AddEditEmployee />} />
+        <Route path="/edit/:id" element={<AddEditEmployee />} />
+      </Routes>
+    </Router>
   );
 }
 
